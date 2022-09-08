@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SAOD1.cpp">
+    <ClCompile Include="cin-out.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

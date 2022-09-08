@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{d2fea518-e02e-47a3-805c-907e6dcc2967}</ProjectGuid>
-    <RootNamespace>SAOD1</RootNamespace>
+    <ProjectGuid>{355b2b8b-dc67-4bfa-a499-b035878299e3}</ProjectGuid>
+    <RootNamespace>cinout</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -127,7 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="SAOD1.cpp" />
+    <ClCompile Include="cin-out.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
