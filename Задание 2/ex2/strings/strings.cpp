@@ -23,4 +23,5 @@ int main()
     cout << tt << endl;
     cout << Len(str) << endl;
     cout << Compare(tt,str) << endl;
+
 }
