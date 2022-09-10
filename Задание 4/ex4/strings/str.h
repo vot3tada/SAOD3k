@@ -53,6 +53,7 @@ class str
 			strcpy_s(m_pszText + strlen(sz),
 				strlen(sz) + 1,
 				sz);
+			delete[] oldstr;
 			return *this;
 		}
 		inline str operator +(const char* sz) const
