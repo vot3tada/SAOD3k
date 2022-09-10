@@ -23,8 +23,6 @@ void rotate(int a[], int n, bool clockwise=false)
             *p = *(p - 1);
         *a = x;
     }
-    
-    
 }
 
 
