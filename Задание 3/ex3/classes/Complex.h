@@ -11,7 +11,7 @@ class Complex
 		Complex();
 		Complex(double, double);
 		Complex(double);
-		inline friend ostream& operator << (std::ostream& o, const Complex& c)
+		inline friend ostream& operator << (ostream& o, const Complex& c)
 		{
 			return o << '(' << c.Re << ", " << c.Im << ')';
 		}
