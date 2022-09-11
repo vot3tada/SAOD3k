@@ -3,7 +3,7 @@ void Swap(int& a, int& b)
     //По-человечески
    /*
    int c = b;
-   int b = a;
+   b = a;
    a = c;
    */
 
