@@ -127,11 +127,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Aggregate.cpp" />
     <ClCompile Include="Child.cpp" />
     <ClCompile Include="LifeTime.cpp" />
     <ClCompile Include="Test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Aggregate.h" />
+    <ClInclude Include="AggregateT.h" />
     <ClInclude Include="Child.h" />
     <ClInclude Include="Test.h" />
   </ItemGroup>
