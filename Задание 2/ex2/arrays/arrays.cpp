@@ -13,14 +13,12 @@ void rotate(int a[], int n, bool clockwise=false)
     if (!clockwise)
     {
         int x = *a;
-        for (int* p = a; p - a < n; p++)
-            *p = *(p + 1);
+        for (int* p = a; p - a < n; *p++ = *(p + 1));
         *(a + 4) = x;
     }
     else {
         int x = *(a + 4);
-        for (int* p = a + n - 1; p >= a; p--)
-            *p = *(p - 1);
+        for (int* p = a + n - 1; p >= a; *p-- = *(p - 1));
         *a = x;
     }
 }
@@ -33,7 +31,7 @@ int main()
         cout << a[i] << ' ';
     cout << endl;
 
-    rotate(a, 5, 1);
+    rotate(a, 5, 0);
 
     for (int* p = a; p - a< 5; p++)
         cout << *p << ' ';
