@@ -13,5 +13,7 @@ int Len(const char* s)
 
 int Compare(const char* s, const char* t)
 {
-    return Len(s) - Len(t);
+    const char* p, *d;
+    for (p = s, d = t; (*d == *p) && *p; d++, p++);
+    return *p - *d;
 }

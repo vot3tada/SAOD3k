@@ -22,6 +22,8 @@ int main()
     }
     cout << tt << endl;
     cout << Len(str) << endl;
-    cout << Compare(tt,str) << endl;
+    char a[] = "Hb";
+    char b[] = "Ha";
+    cout << Compare(a,b) << endl;
 
 }
