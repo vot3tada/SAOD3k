@@ -31,9 +31,7 @@ class List
 			
 		}
 		~List()
-		{
-			
-		}
+		{}
 		void PushBack(T value)
 		{
 			length++;
@@ -48,6 +46,7 @@ class List
 		}
 		void PopBack()
 		{
+			if (start.link == nullptr) return;
 			length--;
 			Node* nodePrevious = &start;
 			Node* node = nodePrevious->link;
@@ -61,8 +60,8 @@ class List
 		}
 		void PopFront()
 		{
-			length--;
 			if (start.link == nullptr) return;
+			length--;
 			Node* node = start.link;
 			start.link = node->link;
 			delete node;
@@ -110,7 +109,7 @@ class List
 			}
 			return node->value;
 		}
-		T const& operator[](const size_t index)
+		/*T const& operator[](const size_t index)
 		{
 			if (start.link == nullptr) throw std::invalid_argument("Out of range");
 			Node* node = start.link;
@@ -119,8 +118,8 @@ class List
 				if (node->link == nullptr) throw std::invalid_argument("Out of range");
 				node = node->link;
 			}
-			return node->value;
-		}
+			return &node->value;
+		}*/
 		size_t Size() const
 		{
 			return length;
@@ -137,20 +136,23 @@ class List
 			{
 				nodePrevious = node;
 				node = node->link;
+				delete nodePrevious;
 			}
-			nodePrevious->link = nullptr;
+			start.link = nullptr;
 			delete node;
+			length = 0;
 		}
-		//T Front() const;
-		//T back() const;
-		void Show()
+		T Front() const
 		{
+			if (start.link == nullptr) throw std::invalid_argument("Out of range");
+			return start.link->value;
+		}
+		T back() const
+		{
+			if (start.link == nullptr) throw std::invalid_argument("Out of range");
 			Node* node = &start;
-			while (node->link != nullptr)
-			{
-				node = node->link;
-				std::cout << node->value << std::endl;
-			}
+			while (node->link != nullptr) node = node->link;
+			return node->value;
 		}
 };
 

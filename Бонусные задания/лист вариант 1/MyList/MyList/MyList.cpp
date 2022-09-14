@@ -16,7 +16,7 @@ int main()
     //list.Show();
     //list.PopBack();
     //list.PopFront();
-    //list.Show();
-    cout << list[0] << endl;
+    cout << list.Front() << endl;
     cout << list[1] << endl;
+    //list.Clear();
 }
