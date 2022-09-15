@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <iterator>
 #include "list.h"
 
 using namespace std;
