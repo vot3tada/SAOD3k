@@ -22,22 +22,46 @@ class List
 				this->link = &link;
 			}
 			~Node()
-			{}
+			{
+				delete link;
+				std::cout << "Node dead" << std::endl;
+			}
 		};
 		Node start;
 	public:
 		List()
 		{
-			
+
+		}
+		template<typename... Args>
+		List(Args... args)
+		{
+			PushBack(args...);
 		}
 		~List()
-		{}
+		{
+			std::cout << "list dead" << std::endl;
+			Clear();
+		}
 		void PushBack(T value)
 		{
 			length++;
 			Node *node = &start;
 			while (node->link != nullptr) node = node->link;
 			node->link = new Node(value);
+		}
+		template<typename... Args>
+		void PushBack(T value, Args... args)
+		{
+			if constexpr (sizeof...(Args) > 0)
+			{
+				length++;
+				Node* node = &start;
+				while (node->link != nullptr) node = node->link;
+				node->link = new Node(value);
+				delete node;
+				return PushBack(args...);
+			}
 		}
 		void PushFront(T value)
 		{
@@ -132,7 +156,7 @@ class List
 		{
 			Node* nodePrevious = &start;
 			Node* node = nodePrevious->link;
-			while (node->link != nullptr)
+			while (node != nullptr && node->link != nullptr)
 			{
 				nodePrevious = node;
 				node = node->link;
@@ -147,7 +171,7 @@ class List
 			if (start.link == nullptr) throw std::invalid_argument("Out of range");
 			return start.link->value;
 		}
-		T back() const
+		T Back() const
 		{
 			if (start.link == nullptr) throw std::invalid_argument("Out of range");
 			Node* node = &start;
