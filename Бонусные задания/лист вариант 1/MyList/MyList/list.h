@@ -23,11 +23,10 @@ class List
 			}
 			~Node()
 			{
-				delete link;
-				std::cout << "Node dead" << std::endl;
+				std::cout << "Node dead " << value << std::endl;
 			}
 		};
-		Node start;
+		Node* start = nullptr;
 	public:
 		List()
 		{
@@ -40,13 +39,15 @@ class List
 		}
 		~List()
 		{
-			std::cout << "list dead" << std::endl;
 			Clear();
 		}
 		void PushBack(T value)
 		{
 			length++;
-			Node *node = &start;
+			if (start == nullptr) {
+				start = new Node(value); return;
+			}
+			Node *node = start;
 			while (node->link != nullptr) node = node->link;
 			node->link = new Node(value);
 		}
@@ -56,23 +57,28 @@ class List
 			if constexpr (sizeof...(Args) > 0)
 			{
 				length++;
-				Node* node = &start;
+				if (start == nullptr) {
+					start = new Node(value); return PushBack(args...);
+				}
+				Node* node = start;
 				while (node->link != nullptr) node = node->link;
 				node->link = new Node(value);
-				delete node;
 				return PushBack(args...);
 			}
 		}
 		void PushFront(T value)
 		{
 			length++;
-			start.link = new Node(value, *start.link);
+			if (start == nullptr) {
+				start = new Node(value); return;
+			}
+			start = new Node(value, *start->link);
 		}
 		void PopBack()
 		{
-			if (start.link == nullptr) return;
+			if (start == nullptr) return;
 			length--;
-			Node* nodePrevious = &start;
+			Node* nodePrevious = start;
 			Node* node = nodePrevious->link;
 			while (node->link != nullptr)
 			{
@@ -84,24 +90,24 @@ class List
 		}
 		void PopFront()
 		{
-			if (start.link == nullptr) return;
+			if (start == nullptr) return;
 			length--;
-			Node* node = start.link;
-			start.link = node->link;
+			Node* node = start;
+			start = node->link;
 			delete node;
 		}
 		void Insert(size_t index, T value)
 		{
+			if (start == nullptr) throw std::out_of_range("Out of range");
 			if (!index)
 			{
-				start.link = new Node(value, *start.link);
+				start = new Node(value, *start);
 				return;
 			}
-			if (start.link == nullptr) throw std::invalid_argument("Out of range");
-			Node* node = start.link;
+			Node* node = start;
 			for (int i = 0; i < index - 1; i++)
 			{
-				if (node->link == nullptr) throw std::invalid_argument("Out of range");
+				if (node->link == nullptr) throw std::out_of_range("Out of range");
 				node = node->link;
 			}
 			node->link = new Node(value, *node->link);
@@ -109,11 +115,11 @@ class List
 		}
 		void RemoveAt(size_t index)
 		{
-			if (start.link == nullptr) throw std::invalid_argument("Out of range");
-			Node* node = start.link;
+			if (start == nullptr) throw std::out_of_range("Out of range");
+			Node* node = start;
 			for (int i = 0; i < index - 1; i++)
 			{
-				if (node->link == nullptr) throw std::invalid_argument("Out of range");
+				if (node->link == nullptr) throw std::out_of_range("Out of range");
 				node = node->link;
 			}
 			Node* nodePrevious = node;
@@ -124,25 +130,25 @@ class List
 		}
 		T& operator[](const size_t index)
 		{
-			if (start.link == nullptr) throw std::invalid_argument("Out of range");
-			Node* node = start.link;
+			if (start == nullptr) throw std::out_of_range("Out of range");
+			Node* node = start;
 			for (int i = 0; i < index; i++)
 			{
-				if (node->link == nullptr) throw std::invalid_argument("Out of range");
+				if (node->link == nullptr) throw std::out_of_range("Out of range");
 				node = node->link;
 			}
 			return node->value;
 		}
 		/*T const& operator[](const size_t index)
 		{
-			if (start.link == nullptr) throw std::invalid_argument("Out of range");
-			Node* node = start.link;
+			if (start == nullptr) throw std::invalid_argument("Out of range");
+			Node* node = start;
 			for (int i = 0; i < index; i++)
 			{
 				if (node->link == nullptr) throw std::invalid_argument("Out of range");
 				node = node->link;
 			}
-			return &node->value;
+			return node->value;
 		}*/
 		size_t Size() const
 		{
@@ -154,29 +160,42 @@ class List
 		}
 		void Clear()
 		{
-			Node* nodePrevious = &start;
+			Node* nodePrevious = start;
 			Node* node = nodePrevious->link;
-			while (node != nullptr && node->link != nullptr)
+			while (node != nullptr)
 			{
 				nodePrevious = node;
 				node = node->link;
 				delete nodePrevious;
 			}
-			start.link = nullptr;
-			delete node;
+			delete start;
+			start = nullptr;
 			length = 0;
 		}
 		T Front() const
 		{
-			if (start.link == nullptr) throw std::invalid_argument("Out of range");
-			return start.link->value;
+			if (start == nullptr) throw std::out_of_range("Out of range");
+			return start->value;
 		}
 		T Back() const
 		{
-			if (start.link == nullptr) throw std::invalid_argument("Out of range");
-			Node* node = &start;
+			if (start == nullptr) throw std::out_of_range("Out of range");
+			Node* node = start;
 			while (node->link != nullptr) node = node->link;
 			return node->value;
+		}
+		void Show()
+		{
+			length++;
+			if (start == nullptr) {
+				return;
+			}
+			Node* node = start;
+			while (node != nullptr) {
+				std::cout << node->value << "\t";
+				node = node->link;
+			}
+			std::cout << std::endl;
 		}
 };
 
