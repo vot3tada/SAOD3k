@@ -22,5 +22,24 @@ int main()
     list.Show();
     cout << list.Front() << endl;
     cout << list[1] << endl;
+    cout << "--------------------" << endl;
+    std::cout << list << endl;
+    list++;
+    std::cout << list << endl;
+    list--;
+    std::cout << list << endl;
+    cout << "--------------------" << endl;
+    list + 2;
+    std::cout << list << endl;
+    list - 2;
+    std::cout << list << endl;
+    //list++
+    //for (auto& i : list) i ++;
+    list.Show();
+    cout << list.Size() << endl;
+    for (int i = 0; i < list.Size(); i++)
+    {
+        cout << list[i] << " ";
+    }
     list.Clear();
 }

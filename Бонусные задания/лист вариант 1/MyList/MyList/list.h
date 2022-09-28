@@ -1,4 +1,5 @@
 #include <iostream>
+
 #pragma once
 template <typename T>
 class List
@@ -23,10 +24,11 @@ class List
 			}
 			~Node()
 			{
-				std::cout << "Node dead " << value << std::endl;
+				//std::cout << "Node dead " << value << std::endl;
 			}
 		};
 		Node* start = nullptr;
+		Node* iterator = start;
 	public:
 		List()
 		{
@@ -50,6 +52,7 @@ class List
 			Node *node = start;
 			while (node->link != nullptr) node = node->link;
 			node->link = new Node(value);
+			iterator = start;
 		}
 		template<typename... Args>
 		void PushBack(T value, Args... args)
@@ -73,6 +76,7 @@ class List
 				start = new Node(value); return;
 			}
 			start = new Node(value, *start);
+			iterator = start;
 		}
 		void PopBack()
 		{
@@ -87,6 +91,7 @@ class List
 			}
 			nodePrevious->link = nullptr;
 			delete node;
+			iterator = start;
 		}
 		void PopFront()
 		{
@@ -95,13 +100,16 @@ class List
 			Node* node = start;
 			start = node->link;
 			delete node;
+			iterator = start;
 		}
 		void Insert(size_t index, T value)
 		{
 			if (start == nullptr) throw std::out_of_range("Out of range");
+			
 			if (!index)
 			{
 				start = new Node(value, *start);
+				length++;
 				return;
 			}
 			Node* node = start;
@@ -127,6 +135,7 @@ class List
 			nodePrevious->link = node->link;
 			delete node;
 			length--;
+			iterator = start;
 		}
 		T& operator[](const size_t index)
 		{
@@ -187,10 +196,7 @@ class List
 		}
 		void Show()
 		{
-			length++;
-			if (start == nullptr) {
-				return;
-			}
+			if (start == nullptr) return;
 			Node* node = start;
 			while (node != nullptr) {
 				std::cout << node->value << "\t";
@@ -198,5 +204,68 @@ class List
 			}
 			std::cout << std::endl;
 		}
+		friend std::ostream& operator << (std::ostream& o, const List& l)
+		{
+			if (l.iterator == nullptr) throw std::out_of_range("Out of range");
+			return o << l.iterator->value;
+		}
+
+		List& operator ++(int)
+		{
+			if (iterator->link == nullptr) throw std::out_of_range("Out of range");
+			iterator = iterator->link;
+			return *this; 
+		}
+		List& operator ++()
+		{
+			if (iterator->link == nullptr) throw std::out_of_range("Out of range");
+			iterator = iterator->link;
+			return *this;
+		}
+		List& operator --(int)
+		{
+			Node* oldIterator = iterator;
+			if (start == oldIterator) throw std::out_of_range("Out of range");
+			iterator = start;
+			while (iterator->link != oldIterator) iterator = iterator->link;
+			return *this;
+		}
+		List& operator +(int k)
+		{
+			if (iterator == nullptr) throw std::out_of_range("Out of range");
+			for (int i = 0; i < k; i++)
+			{
+				iterator = iterator->link;
+				if (iterator == nullptr) throw std::out_of_range("Out of range");
+			}
+			return *this;
+		}
+		List& operator -(int k)
+		{
+			if (iterator == nullptr) throw std::out_of_range("Out of range");
+			int count = k;
+			while (count)
+			{
+				Node* oldIterator = iterator;
+				if (start == oldIterator) throw std::out_of_range("Out of range");
+				iterator = start;
+				while (iterator->link != oldIterator) iterator = iterator->link;
+				count--;
+			}
+			return *this;
+		}
+		List& begin()
+		{
+			iterator = start;
+			return *this;
+		}
+		List& end()
+		{
+			iterator = start;
+			if (iterator == nullptr) return *this;
+			while (iterator->link != nullptr) iterator = iterator->link;
+			return *this;
+		}
 };
+
 
