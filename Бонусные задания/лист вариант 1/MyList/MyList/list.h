@@ -72,7 +72,7 @@ class List
 			if (start == nullptr) {
 				start = new Node(value); return;
 			}
-			start = new Node(value, *start->link);
+			start = new Node(value, *start);
 		}
 		void PopBack()
 		{
@@ -160,6 +160,7 @@ class List
 		}
 		void Clear()
 		{
+			if (start == nullptr) return;
 			Node* nodePrevious = start;
 			Node* node = nodePrevious->link;
 			while (node != nullptr)
