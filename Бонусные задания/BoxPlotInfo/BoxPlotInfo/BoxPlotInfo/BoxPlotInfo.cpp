@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <math.h>
 
-
 void boxInfo(std::vector<double> array, int e)
 {
     std::vector<double> arrayCopy;
@@ -17,7 +16,6 @@ void boxInfo(std::vector<double> array, int e)
     double stddev;
     double uq;
     double max;
-    double out;
     std::sort(arrayCopy.begin(), arrayCopy.end());
     std::cout.setf(std::ios::scientific);
     std::cout.precision(e);
@@ -29,7 +27,7 @@ void boxInfo(std::vector<double> array, int e)
     //min & max
     min = arrayCopy[1.5];
     max = arrayCopy[array.size() - 1.5];
-    
+
     //квартили
     for (double i = 0; i < array.size() - 1; i++)
     {
@@ -72,6 +70,10 @@ void boxInfo(std::vector<double> array, int e)
     std::cout << "stddev:\t" << stddev << std::endl;
     std::cout << "uq:\t" << uq << std::endl;
     std::cout << "max:\t" << max << std::endl;
+
+    //out
+    std::cout << "out:\t";
+    for (int i = 0; i < static_cast<int>(1.5); i++) std::cout << arrayCopy[i] << " " << arrayCopy[array.size() - 1 - i] << " ";
 }
 
 
