@@ -1,5 +1,6 @@
 ﻿#include <iostream>
 #include "list.h"
+#include <numeric>
 
 
 using namespace std;
@@ -23,23 +24,18 @@ int main()
     cout << list.Front() << endl;
     cout << list[1] << endl;
     cout << "--------------------" << endl;
-    std::cout << list << endl;
-    list++;
-    std::cout << list << endl;
-    list--;
-    std::cout << list << endl;
-    cout << "--------------------" << endl;
-    list + 2;
-    std::cout << list << endl;
-    list - 2;
-    std::cout << list << endl;
-    //list++
-    //for (auto& i : list) i ++;
     list.Show();
     cout << list.Size() << endl;
-    for (int i = 0; i < list.Size(); i++)
+    for (List<int>::Iterator iterator = list.begin();
+        iterator != list.end(); iterator++)
     {
-        cout << list[i] << " ";
+        cout << *iterator << " ";
     }
+    cout << endl;
     list.Clear();
+    cout << "----------------------------" << endl;
+    List <int > l = { 3 , 5 , 2 , 7 };
+    for (auto i : l) i += 2;
+    auto lambda = [&l](int a, int b) { return a + b * 10; };
+    cout << accumulate(l.begin(), l.end(), 0, lambda) << "\n";
 }

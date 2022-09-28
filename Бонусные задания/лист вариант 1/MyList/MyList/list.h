@@ -1,4 +1,10 @@
 #include <iostream>
+#include <cassert>      // assert
+#include <cstddef>      // ptrdiff_t
+#include <iterator>     // iterator
+#include <type_traits>  // remove_cv
+#include <utility>      // swap
+
 
 #pragma once
 template <typename T>
@@ -26,7 +32,7 @@ class List
 			{
 				//std::cout << "Node dead " << value << std::endl;
 			}
-		};
+		};		
 		Node* start = nullptr;
 		Node* iterator = start;
 	public:
@@ -43,6 +49,60 @@ class List
 		{
 			Clear();
 		}
+
+		class Iterator;
+		Iterator begin()
+		{
+			return Iterator(start);
+		}
+		Iterator end()
+		{
+			return Iterator(nullptr);
+		}
+		class Iterator
+		{
+		public:
+			Iterator() noexcept :
+				m_pCurrentNode(start) { }
+
+			Iterator(const Node* pNode) noexcept :
+				m_pCurrentNode(pNode) { }
+
+			Iterator& operator=(Node* pNode)
+			{
+				this->m_pCurrentNode = pNode;
+				return *this;
+			}
+
+			// Prefix ++ overload
+			Iterator& operator++()
+			{
+				if (m_pCurrentNode)
+					m_pCurrentNode = m_pCurrentNode->link;
+				return *this;
+			}
+
+			// Postfix ++ overload
+			Iterator operator++(int)
+			{
+				Iterator iterator = *this;
+				++* this;
+				return iterator;
+			}
+
+			bool operator!=(const Iterator& iterator)
+			{
+				return m_pCurrentNode != iterator.m_pCurrentNode;
+			}
+
+			int operator*()
+			{
+				return m_pCurrentNode->value;
+			}
+		private:
+			const Node* m_pCurrentNode;
+		};
+
 		void PushBack(T value)
 		{
 			length++;
@@ -148,17 +208,6 @@ class List
 			}
 			return node->value;
 		}
-		/*T const& operator[](const size_t index)
-		{
-			if (start == nullptr) throw std::invalid_argument("Out of range");
-			Node* node = start;
-			for (int i = 0; i < index; i++)
-			{
-				if (node->link == nullptr) throw std::invalid_argument("Out of range");
-				node = node->link;
-			}
-			return node->value;
-		}*/
 		size_t Size() const
 		{
 			return length;
@@ -203,68 +252,6 @@ class List
 				node = node->link;
 			}
 			std::cout << std::endl;
-		}
-		friend std::ostream& operator << (std::ostream& o, const List& l)
-		{
-			if (l.iterator == nullptr) throw std::out_of_range("Out of range");
-			return o << l.iterator->value;
-		}
-
-		List& operator ++(int)
-		{
-			if (iterator->link == nullptr) throw std::out_of_range("Out of range");
-			iterator = iterator->link;
-			return *this; 
-		}
-		List& operator ++()
-		{
-			if (iterator->link == nullptr) throw std::out_of_range("Out of range");
-			iterator = iterator->link;
-			return *this;
-		}
-		List& operator --(int)
-		{
-			Node* oldIterator = iterator;
-			if (start == oldIterator) throw std::out_of_range("Out of range");
-			iterator = start;
-			while (iterator->link != oldIterator) iterator = iterator->link;
-			return *this;
-		}
-		List& operator +(int k)
-		{
-			if (iterator == nullptr) throw std::out_of_range("Out of range");
-			for (int i = 0; i < k; i++)
-			{
-				iterator = iterator->link;
-				if (iterator == nullptr) throw std::out_of_range("Out of range");
-			}
-			return *this;
-		}
-		List& operator -(int k)
-		{
-			if (iterator == nullptr) throw std::out_of_range("Out of range");
-			int count = k;
-			while (count)
-			{
-				Node* oldIterator = iterator;
-				if (start == oldIterator) throw std::out_of_range("Out of range");
-				iterator = start;
-				while (iterator->link != oldIterator) iterator = iterator->link;
-				count--;
-			}
-			return *this;
-		}
-		List& begin()
-		{
-			iterator = start;
-			return *this;
-		}
-		List& end()
-		{
-			iterator = start;
-			if (iterator == nullptr) return *this;
-			while (iterator->link != nullptr) iterator = iterator->link;
-			return *this;
 		}
 };
 
