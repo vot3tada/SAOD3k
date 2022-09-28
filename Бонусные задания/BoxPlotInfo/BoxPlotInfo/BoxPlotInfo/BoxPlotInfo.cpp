@@ -16,9 +16,13 @@ void boxInfo(std::vector<double> array, int e)
     double stddev;
     double uq;
     double max;
+
+
     std::sort(arrayCopy.begin(), arrayCopy.end());
     std::cout.setf(std::ios::scientific);
     std::cout.precision(e);
+
+
     //for (auto i : arrayCopy) std::cout << i << "\t";
     //std::cout << std::endl;
 
@@ -32,9 +36,7 @@ void boxInfo(std::vector<double> array, int e)
     for (double i = 0; i < array.size() - 1; i++)
     {
         if (i / (array.size() - 1) <= 1.0 / 4 && (i + 1) / (array.size() - 1) >= 1.0/4)
-        {
             lq = array[i] + ((1.0 / 4) - (i / (array.size() - 1))) / ((i + 1) / (array.size() - 1) - (i / (array.size() - 1))) * (array[i + 1] - array[i]);
-        }
         if (i / (array.size() - 1) <= 3.0 / 4 && (i + 1) / (array.size() - 1) >= 3.0 / 4)
         {
             uq = array[i] + ((3.0 / 4) - (i / (array.size() - 1))) / ((i + 1) / (array.size() - 1) - (i / (array.size() - 1))) * (array[i + 1] - array[i]);
@@ -49,12 +51,12 @@ void boxInfo(std::vector<double> array, int e)
     
     
     //mean
-    mean = 0;
-    for (auto i : array) mean += i;
-    mean /= array.size();
-    //std::cout << std::accumulate(array.begin(), array.end(), 0) << "\n"; фигню считает, возвращает целое.
+    mean = std::accumulate(array.begin(), array.end(), 0.0) / array.size();
 
     //stddev
+    //auto lambda = [&array, mean](double a, double b) { return a + (b - mean) * (b - mean); }; возвращает такую гадость -nan(ind)
+    //stddev = sqrt(std::accumulate(array.begin(), array.end(), 0.0, lambda) / array.size() - 1); возникает только при вызове минуса b - mean
+    
     stddev = 0;
     for (auto i : array) stddev += (i - mean) * (i - mean);
     stddev /= array.size() - 1;
