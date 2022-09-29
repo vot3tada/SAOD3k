@@ -4,78 +4,66 @@
 #include <algorithm>
 #include <math.h>
 
-void boxInfo(std::vector<double> array, int e)
+void boxInfo(const std::vector<double>& array, int e)
 {
-    std::vector<double> arrayCopy;
-    for (int i = 0; i < array.size(); i++)
-        arrayCopy.push_back(array[i]);
-    double min;
-    double lq;
-    double median;
-    double mean;
-    double stddev;
-    double uq;
-    double max;
-
-
+    std::vector<double> arrayCopy(array);
+    double k = 1.5,
+        min,
+        Q1,
+        median,
+        mean,
+        stddev,
+        Q3,
+        max;
+    std::vector<double> out;
     std::sort(arrayCopy.begin(), arrayCopy.end());
     std::cout.setf(std::ios::scientific);
     std::cout.precision(e);
-
-
-    //for (auto i : arrayCopy) std::cout << i << "\t";
-    //std::cout << std::endl;
-
-
-
-    //min & max
-    min = arrayCopy[1.5];
-    max = arrayCopy[array.size() - 1.5];
-
-    //квартили
-    for (double i = 0; i < array.size() - 1; i++)
-    {
-        if (i / (array.size() - 1) <= 1.0 / 4 && (i + 1) / (array.size() - 1) >= 1.0/4)
-            lq = array[i] + ((1.0 / 4) - (i / (array.size() - 1))) / ((i + 1) / (array.size() - 1) - (i / (array.size() - 1))) * (array[i + 1] - array[i]);
-        if (i / (array.size() - 1) <= 3.0 / 4 && (i + 1) / (array.size() - 1) >= 3.0 / 4)
-        {
-            uq = array[i] + ((3.0 / 4) - (i / (array.size() - 1))) / ((i + 1) / (array.size() - 1) - (i / (array.size() - 1))) * (array[i + 1] - array[i]);
-            break;
-        }
-    }
-    
-    
-    //median
+    //Квартили
+    Q1 = arrayCopy[0.25 * arrayCopy.size()];
+    Q3 = arrayCopy[0.75 * arrayCopy.size()];
+    //Границы
+    min = Q1 - k * (Q3 - Q1);
+    max = Q3 + k * (Q3 - Q1);
+    //Медиана
     if (arrayCopy.size() % 2) median = arrayCopy[arrayCopy.size() / 2];
     else median = (arrayCopy[arrayCopy.size() / 2] + arrayCopy[arrayCopy.size() / 2 + 1]) / 2;
-    
-    
-    //mean
+    //Среднее
     mean = std::accumulate(array.begin(), array.end(), 0.0) / array.size();
-
-    //stddev
-    //auto lambda = [&array, mean](double a, double b) { return a + (b - mean) * (b - mean); }; возвращает такую гадость -nan(ind)
-    //stddev = sqrt(std::accumulate(array.begin(), array.end(), 0.0, lambda) / array.size() - 1); возникает только при вызове минуса b - mean
-    
+    //Среднее квадратичное
     stddev = 0;
     for (auto i : array) stddev += (i - mean) * (i - mean);
     stddev /= array.size() - 1;
     stddev = sqrt(stddev);
-    
-
-
-
+    //out и границы
+    for (auto i : arrayCopy)
+    {
+        if (i > min)
+        {
+            min = i;
+            break;
+        }
+        out.push_back(i);
+    }
+    for (int i = array.size() - 1; i >= 0 ; i--)
+    {
+        if (arrayCopy[i] < max)
+        {
+            max = arrayCopy[i];
+            break;
+        }
+        out.push_back(arrayCopy[i]);
+    }
     std::cout << "min:\t" << min << std::endl;
-    std::cout << "lq:\t" << lq << std::endl;
+    std::cout << "lq:\t" << Q1 << std::endl;
     std::cout << "median:\t" << median << std::endl;
     std::cout << "mean:\t" << mean << std::endl;
     std::cout << "stddev:\t" << stddev << std::endl;
-    std::cout << "uq:\t" << uq << std::endl;
+    std::cout << "uq:\t" << Q3 << std::endl;
     std::cout << "max:\t" << max << std::endl;
-
-    //out
     std::cout << "out:\t";
-    for (int i = 0; i < static_cast<int>(1.5); i++) std::cout << arrayCopy[i] << " " << arrayCopy[array.size() - 1 - i] << " ";
+    for (int i = 0; i < out.size(); std::cout << out[i++] << " ");
+    std::cout << std::endl;
 }
 
 
