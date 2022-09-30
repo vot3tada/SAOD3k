@@ -95,7 +95,7 @@ class List
 				return m_pCurrentNode != iterator.m_pCurrentNode;
 			}
 
-			int operator*()
+			T operator*()
 			{
 				return m_pCurrentNode->value;
 			}

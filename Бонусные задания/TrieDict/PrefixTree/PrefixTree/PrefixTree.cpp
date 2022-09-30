@@ -46,39 +46,51 @@ void triedict(const std::string& text, std::string word)
 	cout << word << ": " << dict.Find(word.c_str()) << endl;
 }
 
-int main()
-{
-	using namespace std;
-	string text;
-	ifstream fin("engwiki_ascii.txt", ios::binary);
-	if (!fin.is_open())
-	{
-		cout << "not open!" << endl;
-		return 0;
-	}
-	text.append((istreambuf_iterator<char>(fin)), istreambuf_iterator<char>());
-	string word = "wiki"; // слово которое ищем
-	auto time_one = chrono::steady_clock::now();
-	//umap(text, word);
-	triedict(text, word);
-	auto time_two = chrono::steady_clock::now();
-	cout << "umap\t" << chrono::duration_cast<chrono::microseconds>(time_two - time_one).count() / 1e6 << " sec\n";
-}
-
-
 //int main()
 //{
-//    Tree tree;
-//    char str[] = "are they the most fun and these are a fun ";
-//    std::string s = "";
-//    for (int i = 0; i < strlen(str); i++)
-//    {
-//        if (str[i] != ' ') s += str[i];
-//        else
-//        {
-//            tree.Insert(s.c_str());
-//            s = "";
-//        }
-//    }
-//    std::cout << "===========================================" << std::endl;
+//	using namespace std;
+//	//string text;
+//	//ifstream fin("engwiki_ascii.txt", ios::binary);
+//	//if (!fin.is_open())
+//	//{
+//	//	cout << "not open!" << endl;
+//	//	return 0;
+//	//}
+//	//text.append((istreambuf_iterator<char>(fin)), istreambuf_iterator<char>());
+//	//string word = "wiki"; // слово которое ищем
+//	//for (int z = 0; z < 4; z++)
+//	//{
+//	//	auto time_one = chrono::steady_clock::now();
+//	//	//umap(text, word);
+//	//	triedict(text, word);
+//	//	auto time_two = chrono::steady_clock::now();
+//	//	cout << "umap\t" << chrono::duration_cast<chrono::microseconds>(time_two - time_one).count() / 1e6 << " sec\n";
+//	//}
 //}
+
+
+int main()
+{
+    Tree tree;
+    char str[] = "are they the most fun and these are a fun ";
+    std::string s = "";
+    for (int i = 0; i < strlen(str); i++)
+    {
+        if (str[i] != ' ') s += str[i];
+        else
+        {
+            tree.Insert(s.c_str());
+            s = "";
+        }
+    }
+	for (int i = 0; i < strlen(str); i++)
+	{
+		if (str[i] != ' ') s += str[i];
+		else
+		{
+			std::cout << tree.Find(s.c_str()) << std::endl;
+			s = "";
+		}
+	}
+    std::cout << "===========================================" << std::endl;
+}
