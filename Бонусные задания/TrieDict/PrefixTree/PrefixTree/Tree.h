@@ -43,8 +43,7 @@ public:
 		for (int i = 0; i < strlen(word); i++)
 		{
 			Node* addNode = node->FindNode(word[i]);
-			if (addNode == nullptr)
-				node = node->AddNode(word[i]);
+			if (addNode == nullptr) node = node->AddNode(word[i]);
 			else node = addNode;
 		}
 		if (node->count == 0) size++;
