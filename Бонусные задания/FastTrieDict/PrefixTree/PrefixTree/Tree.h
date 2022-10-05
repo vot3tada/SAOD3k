@@ -7,16 +7,13 @@ class Tree
 	class Node
 	{
 	public:
-		std::unique_ptr<Node> nodes[84];
+		std::unique_ptr<Node> nodes[84] = { nullptr };
 		char key;
 		int count = 0;
 		Node()
-		{ 
-			for (int i = 0; i < 84; nodes[i++] = nullptr);
-		}
+		{ }
 		Node(char key)
 		{
-			for (int i = 0; i < 84; nodes[i++] = nullptr);
 			this->key = key;
 		}
 		~Node()
