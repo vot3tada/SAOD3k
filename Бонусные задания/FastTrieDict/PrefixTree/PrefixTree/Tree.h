@@ -20,13 +20,13 @@ class Tree
 		{ }
 		Node* AddNode(const char key)
 		{
-			nodes[key - 39] = std::unique_ptr<Node>(new Node(key));
-			return nodes[key - 39].get();
+			nodes[key-39] = std::unique_ptr<Node>(new Node(key));
+			return nodes[key-39].get();
 		}
 		Node* FindNode(const char key)
 		{
-			if (nodes[key - 39] == nullptr) return nullptr;
-			return nodes[key - 39].get();
+			if (nodes[key-39] == nullptr) return nullptr;
+			return nodes[key-39].get();
 		}
 		void Raise() { count++; }
 	};
