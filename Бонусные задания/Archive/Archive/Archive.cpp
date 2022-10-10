@@ -8,6 +8,7 @@
 #include <future>
 #include <array>
 #include <iterator>
+#include <string.h>
 
 struct Node
 {
@@ -80,7 +81,9 @@ std::string Code(char* text, std::unordered_map<char, std::string>& map, const s
         if (text[i] < 0) break;
         code += map[text[i]];
     }
+    //delete[] text;
     return code;
+    //return text;
 }
 std::string ThreadTask(unsigned aTaskID, char* text,const size_t len)
 {
@@ -92,14 +95,14 @@ std::string ThreadTask(unsigned aTaskID, char* text,const size_t len)
 void Compress(std::string nameInFile, std::string nameOutFile)
 {
     using namespace std;
-    const size_t len = 20;
+    const size_t len = 50;
     ifstream fin(nameInFile, ios::in);
     ofstream fout(nameOutFile, ios::binary);
     list<future<string>> queue;
     int i = 0;
     while (!fin.fail())
     {
-        char text[len];
+        char* text = new char[len];
         fin.read(text, len);
         queue.push_front(std::async(std::launch::async, ThreadTask,i++, text, len));
     }
@@ -115,9 +118,9 @@ void Compress(std::string nameInFile, std::string nameOutFile)
 int main()
 {
     using namespace std;
-    const size_t len = 500;
+    const size_t len = 1000;
     char text[len];
-    ifstream f("n.txt", ios::in);
+    ifstream f("engwiki_ascii.txt", ios::in);
     while (!f.fail())
     {
         f.read(text, sizeof(text));
@@ -128,8 +131,5 @@ int main()
     cout << Code(text, map, len);
     f.close();
     cout << endl;
-    Compress("n.txt", "out.compressed");
-
-
-
+    //Compress("engwiki_ascii.txt", "out.compressed");
 }
