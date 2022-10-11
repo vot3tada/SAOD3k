@@ -9,6 +9,7 @@
 #include <array>
 #include <iterator>
 #include <string.h>
+#include <bitset>
 
 struct Node
 {
@@ -32,6 +33,7 @@ struct Node
 Node GetTree(std::vector<Node> arrayOfChar)
 {
     std::list<Node> queue;
+    sort(arrayOfChar.begin(), arrayOfChar.end(), [](Node a, Node b) {return a.count > b.count; });
     for (int k = 0; arrayOfChar[k].count != 0 && k < 128; k++) queue.push_front(Node(arrayOfChar[k].key, arrayOfChar[k].count));
     while (queue.size() > 1)
     {
@@ -57,7 +59,6 @@ std::vector<Node> GetArrayOfChar(char* text, const size_t len)
         if (text[i] - 1 < 0) break;
         ACII[text[i] - 1].count++;
     }
-    sort(ACII.begin(), ACII.end(), [](Node a, Node b) {return a.count > b.count; });
     return ACII;
 }
 void Gorshok(Node* subTree, std::string code, std::unordered_map<char, std::string>& map)
@@ -67,7 +68,7 @@ void Gorshok(Node* subTree, std::string code, std::unordered_map<char, std::stri
     if (subTree->key != -1) map.insert({ subTree->key,code });
     return;
 }
-std::unordered_map<char, std::string> TreeToCode(Node* tree)
+std::unordered_map<char, std::string> TreeToMap(Node* tree)
 {
     std::unordered_map<char, std::string> map;
     Gorshok(tree,"", map);
@@ -81,55 +82,75 @@ std::string Code(char* text, std::unordered_map<char, std::string>& map, const s
         if (text[i] < 0) break;
         code += map[text[i]];
     }
-    //delete[] text;
+    delete[] text;
     return code;
-    //return text;
 }
-std::string ThreadTask(unsigned aTaskID, char* text,const size_t len)
+std::string MakeCode(unsigned aTaskID, std::unordered_map<char, std::string> map)
 {
-    auto arr = GetArrayOfChar(text, len);
-    auto tree = GetTree(arr);
-    std::unordered_map<char, std::string> map = TreeToCode(&tree);
-    return Code(text, map, len);
+    return " ";
+}
+//auto tree = GetTree(arr);
+    //std::unordered_map<char, std::string> map = TreeToCode(&tree);
+    //return Code(text, map, len);
+std::vector<Node> MakeArray(unsigned aTaskID, char* text, const size_t len)
+{
+    return GetArrayOfChar(text, len);
 }
 void Compress(std::string nameInFile, std::string nameOutFile)
 {
     using namespace std;
-    const size_t len = 50;
+    const size_t len = 50000;
+    int size = 0;
     ifstream fin(nameInFile, ios::in);
-    ofstream fout(nameOutFile, ios::binary);
-    list<future<string>> queue;
+    list<future<std::vector<Node>>> queue1;
     int i = 0;
     while (!fin.fail())
     {
         char* text = new char[len];
         fin.read(text, len);
-        queue.push_front(std::async(std::launch::async, ThreadTask,i++, text, len));
+        queue1.push_front(std::async(std::launch::async, MakeArray,i++, text, len));
+        size += len;
+    }
+    cout << size;
+    i = 0;
+    fin.close();
+    if (queue1.empty()) return;
+    auto arrayOfChar = queue1.back().get();
+    queue1.pop_back();
+    while (!queue1.empty())
+    {
+        auto array = queue1.back().get();
+        for (i = 0; i < arrayOfChar.size(); i++)
+        {
+            arrayOfChar[i].count += array[i].count;
+        }
+        queue1.pop_back();
+    }
+    auto tree = GetTree(arrayOfChar);
+    list<future<std::string>> queue2;
+    std::unordered_map<char, std::string> map = TreeToMap(&tree);
+    fin.open(nameInFile, ios::in);
+    ofstream fout(nameOutFile, std::ios_base::out | std::ios_base::binary);
+    while (!fin.fail())
+    {
+        char* text = new char[len];
+        fin.read(text, len);
+        auto str = Code(text, map, len);
+        for (int i = 0; i < str.size(); i+=8)
+        {
+            char s[] = "00000000";
+            int bite = 0;
+            if (str.size() - i < 8) bite = 8 - (str.size() - i);
+            if (bite != 0) for (bite; bite < 8; bite++) s[bite] = str[i];
+            else for (bite; bite < 8; bite++) s[bite] = str[i + bite];
+            std::bitset<8> code {s};
+            fout << code;
+        }
     }
     fin.close();
-    while (!queue.empty())
-    {
-        auto& task = queue.back();
-        cout << task.get();
-        queue.pop_back();
-    }
     fout.close();
 }
 int main()
 {
-    using namespace std;
-    const size_t len = 1000;
-    char text[len];
-    ifstream f("engwiki_ascii.txt", ios::in);
-    while (!f.fail())
-    {
-        f.read(text, sizeof(text));
-    }
-    auto arr = GetArrayOfChar(text, len);
-    auto tree = GetTree(arr);
-    std::unordered_map<char, std::string> map = TreeToCode(&tree);
-    cout << Code(text, map, len);
-    f.close();
-    cout << endl;
-    //Compress("engwiki_ascii.txt", "out.compressed");
+    Compress("engwiki_ascii.txt", "out.compressed");
 }
