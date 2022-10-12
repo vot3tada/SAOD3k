@@ -85,22 +85,26 @@ std::string Code(char* text, std::unordered_map<char, std::string>& map, const s
     delete[] text;
     return code;
 }
-std::string MakeCode(unsigned aTaskID, std::unordered_map<char, std::string> map)
+void StatusBar(float* filesize, float* outsize)
 {
-    return " ";
-}
-//auto tree = GetTree(arr);
-    //std::unordered_map<char, std::string> map = TreeToCode(&tree);
-    //return Code(text, map, len);
-std::vector<Node> MakeArray(unsigned aTaskID, char* text, const size_t len)
-{
-    return GetArrayOfChar(text, len);
+    using namespace std;
+    int out = 0;
+    int nout = 0;
+    while (out != 100)
+    {
+        nout = ((*outsize / *filesize) * 100);
+        if (out != nout)
+        {
+            out = nout;
+            cout << out << '%' << endl;
+        }
+    }
 }
 void Compress(std::string nameInFile, std::string nameOutFile)
 {
     using namespace std;
     const size_t len = 50000;
-    int size = 0;
+    float filesize = 0;
     ifstream fin(nameInFile, ios::in);
     list<future<std::vector<Node>>> queue1;
     int i = 0;
@@ -108,11 +112,9 @@ void Compress(std::string nameInFile, std::string nameOutFile)
     {
         char* text = new char[len];
         fin.read(text, len);
-        queue1.push_front(std::async(std::launch::async, MakeArray,i++, text, len));
-        size += len;
+        queue1.push_front(std::async(std::launch::async, GetArrayOfChar, text, len));
+        filesize += len;
     }
-    cout << size;
-    i = 0;
     fin.close();
     if (queue1.empty()) return;
     auto arrayOfChar = queue1.back().get();
@@ -131,22 +133,29 @@ void Compress(std::string nameInFile, std::string nameOutFile)
     std::unordered_map<char, std::string> map = TreeToMap(&tree);
     fin.open(nameInFile, ios::in);
     ofstream fout(nameOutFile, std::ios_base::out | std::ios_base::binary);
+    float outsize = 0;
+    list<future<void>> queue3;
+    queue3.push_front(std::async(std::launch::async, StatusBar, &filesize, &outsize));
+    int out = 0;
+    int nout = 0;
     while (!fin.fail())
     {
         char* text = new char[len];
         fin.read(text, len);
+        outsize += len;
         auto str = Code(text, map, len);
-        for (int i = 0; i < str.size(); i+=8)
+        bitset<8> code;
+        for (int i = 0; i < str.size(); i++)
         {
-            char s[] = "00000000";
-            int bite = 0;
-            if (str.size() - i < 8) bite = 8 - (str.size() - i);
-            if (bite != 0) for (bite; bite < 8; bite++) s[bite] = str[i];
-            else for (bite; bite < 8; bite++) s[bite] = str[i + bite];
-            std::bitset<8> code {s};
-            fout << code;
+            code[7 - (i % 8)] = str[i] == '0' ? 0 : 1;
+            if (i % 8 == 7)
+            {
+                fout << static_cast<char>(code.to_ulong());
+                code.reset();
+            }
         }
     }
+    queue3.clear();
     fin.close();
     fout.close();
 }
