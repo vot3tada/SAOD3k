@@ -57,7 +57,7 @@ std::vector<Node> GetArrayOfChar(char* text, const size_t len)
     for (int i = 0; i < len; i++)
     {
         if (text[i] - 1 < 0) break;
-        ACII[text[i] - 1].count++;
+        ACII[text[i]].count++;
     }
     return ACII;
 }
@@ -161,5 +161,25 @@ void Compress(std::string nameInFile, std::string nameOutFile)
 }
 int main()
 {
+    /*std::string text;
+    std::ifstream fin("engwiki_ascii.txt", std::ios::binary);
+    text.append((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
+    fin.close();
+    auto arr = GetArrayOfChar((char*)text.c_str(), text.size());
+    auto tree = GetTree(arr);
+    auto map = TreeToMap(&tree);
+    auto str = Code((char*)text.c_str(), map, text.size());
+    std::bitset<8> code;
+    std::ofstream fout("out.compressed", std::ios_base::out | std::ios_base::binary);
+    for (int i = 0; i < str.size(); i++)
+    {
+        code[7 - (i % 8)] = str[i] == '0' ? 0 : 1;
+        if (i % 8 == 7)
+        {
+            fout << static_cast<char>(code.to_ulong());
+            code.reset();
+        }
+    }
+    fout.close();*/
     Compress("engwiki_ascii.txt", "out.compressed");
 }
