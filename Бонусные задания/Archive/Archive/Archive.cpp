@@ -159,6 +159,9 @@ std::vector<Node> arrayOfChar = { Node(0,0),
                                     Node(126,2445),
                                     Node(127,0) };
 
+std::unordered_map<char, std::string> mapC;
+std::unordered_map<std::string, char> mapD;
+
 
 
 Node GetTree(std::vector<Node> arrayOfChar)
@@ -218,13 +221,13 @@ std::unordered_map<std::string, char> TreeToMapD(Node* tree)
     GorshokD(tree, "", map);
     return map;
 }
-std::string Code(char* text, std::unordered_map<char, std::string>& map, const size_t len)
+std::string Code(char* text, const size_t len)
 {
     std::string code = "";
     for (int i = 0; i < len; i++)
     {
-        if (text[i] < 0) break;
-        code += map[text[i]];
+        if (mapC.count(text[i]))
+            code += mapC[text[i]];
     }
     delete[] text;
     return code;
@@ -276,37 +279,45 @@ void Compress(std::string nameInFile, std::string nameOutFile)
     fin.open(nameInFile, ios::in);
     ofstream fout(nameOutFile, std::ios_base::out | std::ios_base::binary);
     float outsize = 0;
-    list<future<void>> queue3;
-    queue3.push_front(std::async(std::launch::async, StatusBar, &filesize, &outsize));
+    list<future<void>> status;
+    list<future<string>> queue2;
+    //status.push_front(std::async(std::launch::async, StatusBar, &filesize, &outsize));
     while (!fin.fail())
     {
         char* text = new char[len];
         fin.read(text, len);
         outsize += len;
-        auto str = Code(text, map, len);
-        bitset<8> code;
+        queue2.push_back(std::async(std::launch::async, Code, text, len));
+    }
+    bitset<8> code;
+    int j = 0;
+    for (auto& item : queue2)
+    {
+        auto str = item.get();
         for (int i = 0; i < str.size(); i++)
         {
-            code[7 - (i % 8)] = str[i] == '0' ? 0 : 1;
-            if (i % 8 == 7)
+            code[7 - j] = str[i] == '0' ? 0 : 1;
+            if (j == 7)
             {
                 fout << static_cast<char>(code.to_ulong());
+                //fout.write((const char*)static_cast<char>(code.to_ulong()), 1);
                 code.reset();
+                j = 0;
             }
+            else j++;
         }
-        fout << static_cast<char>(code.to_ulong());
     }
-    queue3.clear();
+    fout << static_cast<char>(code.to_ulong());
+    status.clear();
+    queue2.clear();
     fin.close();
     fout.close();
 }
 void Decompress(std::string nameInFile, std::string nameOutFile)
 {
     using namespace std;
-    auto tree = GetTree(arrayOfChar);
     string text;
-    auto map = TreeToMapD(&tree);
-    const size_t len = text.size();
+    const size_t len = 50000;
     float filesize = 0;
     float outsize = 0;
     ifstream fin(nameInFile, ios::in | ios::binary);
@@ -317,37 +328,40 @@ void Decompress(std::string nameInFile, std::string nameOutFile)
         fin.read(text, len);
         filesize += len;
     }*/
-    //fin.open(nameInFile, ios::in | ios::binary);
+    fin.open(nameInFile, ios::in | ios::binary);
     ofstream fout(nameOutFile, std::ios_base::out);
     string buf = "";
-    list<future<void>> queue3;
+    //list<future<void>> queue3;
     //queue3.push_front(std::async(std::launch::async, StatusBar, &filesize, &outsize));
-    /*while (!fin.fail())
-    {*/
+    //while (!fin.fail())
+    //{
         std::bitset<8> byte;
         //char text[len];
         //fin.read(text, len);
         for (int i = 0; i < text.size(); i++)
         {
             byte = text[i];
-            if (text[i] == -52) continue;
+            //if (text[i] == -52) continue;
             for (int bite = 0; bite < 8; bite++)
             {
                 buf += byte[7 - bite] == 0 ? '0': '1';
-                if (map.count(buf))
+                if (mapD.count(buf))
                 {
                     //cout << endl << buf << "-" << map[buf] << endl;
-                    fout << map[buf];
+                    fout << mapD[buf];
                     buf = "";
                 }
             }
         }
         //outsize += len;
     //}
-    queue3.clear();
+    //queue3.clear();
 }
 int main()
 {
-   //Compress("engwiki_ascii.txt", "engwiki.compressed");
-   Decompress("engwiki.compressed", "out.txt");
+    auto tree = GetTree(arrayOfChar);
+    mapC = TreeToMapC(&tree);
+    mapD = TreeToMapD(&tree);
+    Compress("engwiki_ascii.txt", "engwiki.compressed");
+    Decompress("engwiki.compressed", "out.txt");
 }
