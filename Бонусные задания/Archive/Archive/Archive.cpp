@@ -247,6 +247,29 @@ void StatusBar(float* filesize, float* outsize)
         }
     }
 }
+void ThreadWriter(std::list<future<string>>& queue, std::string nameOutFile)
+{
+    ofstream fout(nameOutFile, std::ios_base::out | std::ios_base::binary);
+    bitset<8> code;
+    int j = 0;
+    for (auto& item : queue)
+    {
+        auto str = item.get();
+        for (int i = 0; i < str.size(); i++)
+        {
+            code[7 - j] = str[i] == '0' ? 0 : 1;
+            if (j == 7)
+            {
+                fout << static_cast<char>(code.to_ulong());
+                code.reset();
+                j = 0;
+            }
+            else j++;
+        }
+    }
+    fout << static_cast<char>(code.to_ulong());
+    fout.close();
+}
 void Compress(std::string nameInFile, std::string nameOutFile)
 {
     using namespace std;
