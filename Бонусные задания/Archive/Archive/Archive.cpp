@@ -247,13 +247,15 @@ void StatusBar(float* filesize, float* outsize)
         }
     }
 }
-void ThreadWriter(std::list<future<string>>& queue, std::string nameOutFile)
+void ThreadWriter(std::list<std::future<std::string>>* queue, std::string nameOutFile, bool* stop)
 {
-    ofstream fout(nameOutFile, std::ios_base::out | std::ios_base::binary);
-    bitset<8> code;
+    std::ofstream fout(nameOutFile, std::ios_base::out | std::ios_base::binary);
+    std::bitset<8> code;
     int j = 0;
-    for (auto& item : queue)
+    while (!*stop || queue->size() != 0)
     {
+        if (queue->size() == 0) continue;
+        auto& item = queue->front();
         auto str = item.get();
         for (int i = 0; i < str.size(); i++)
         {
@@ -266,6 +268,7 @@ void ThreadWriter(std::list<future<string>>& queue, std::string nameOutFile)
             }
             else j++;
         }
+        queue->pop_front();
     }
     fout << static_cast<char>(code.to_ulong());
     fout.close();
@@ -300,11 +303,12 @@ void Compress(std::string nameInFile, std::string nameOutFile)
     auto tree = GetTree(arrayOfChar);
     std::unordered_map<char, std::string> map = TreeToMapC(&tree);
     fin.open(nameInFile, ios::in);
-    ofstream fout(nameOutFile, std::ios_base::out | std::ios_base::binary);
     float outsize = 0;
+    bool stop = false;
     list<future<void>> status;
     list<future<string>> queue2;
     //status.push_front(std::async(std::launch::async, StatusBar, &filesize, &outsize));
+    status.push_front(std::async(std::launch::async, ThreadWriter, &queue2, nameOutFile, &stop));
     while (!fin.fail())
     {
         char* text = new char[len];
@@ -312,29 +316,11 @@ void Compress(std::string nameInFile, std::string nameOutFile)
         outsize += len;
         queue2.push_back(std::async(std::launch::async, Code, text, len));
     }
-    bitset<8> code;
-    int j = 0;
-    for (auto& item : queue2)
-    {
-        auto str = item.get();
-        for (int i = 0; i < str.size(); i++)
-        {
-            code[7 - j] = str[i] == '0' ? 0 : 1;
-            if (j == 7)
-            {
-                fout << static_cast<char>(code.to_ulong());
-                //fout.write((const char*)static_cast<char>(code.to_ulong()), 1);
-                code.reset();
-                j = 0;
-            }
-            else j++;
-        }
-    }
-    fout << static_cast<char>(code.to_ulong());
+    stop = true;
+    status.front().get();
     status.clear();
     queue2.clear();
     fin.close();
-    fout.close();
 }
 void Decompress(std::string nameInFile, std::string nameOutFile)
 {
