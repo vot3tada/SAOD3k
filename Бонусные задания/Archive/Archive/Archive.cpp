@@ -108,10 +108,11 @@ std::string Code(char* text, const size_t len)
     std::string code = "";
     for (int i = 0; i < len; i++)
     {
+        if (text[i] < 0) break;
         if (mapC.count(text[i]))
             code += mapC[text[i]];
     }
-    //delete[] text;
+    delete[] text;
     return code;
 }
 void StatusBar(float* filesize, float* outsize)
@@ -129,9 +130,13 @@ void StatusBar(float* filesize, float* outsize)
         }
     }
 }
-void ThreadWriter(std::list<std::future<std::string>>* queue, std::string nameOutFile, bool* stop)
+void ThreadWriter(std::list<std::future<std::string>>* queue, std::string nameOutFile, bool* stop,std::vector<Node> arrayOfChar)
 {
     std::ofstream fout(nameOutFile, std::ios_base::out | std::ios_base::binary);
+    for (int i = 0; i < 128; i++)
+    {
+        fout << arrayOfChar[i].count << " " << std::endl;
+    }
     std::bitset<8> code;
     int j = 0;
     while (!*stop || queue->size() != 0)
@@ -185,48 +190,29 @@ void Compress(std::string nameInFile, std::string nameOutFile)
     Node tree = GetTree(arrayOfChar);
     mapC = TreeToMapC(&tree);
     delTree(&tree);
-    string text;
-    fin.open(nameInFile, ios::in);
-		text.append((istreambuf_iterator<char>(fin)), istreambuf_iterator<char>());
+    
+    /*text.append((istreambuf_iterator<char>(fin)), istreambuf_iterator<char>());*/
 
     float outsize = 0;
     bool stop = false;
-    //list<future<void>> status;
-    //list<future<string>> queue2;
+    list<future<void>> status;
+    list<future<string>> queue2;
     //status.push_front(std::async(std::launch::async, StatusBar, &filesize, &outsize));
-    //status.push_front(std::async(std::launch::async, ThreadWriter, &queue2, nameOutFile, &stop));
-    //while (!fin.fail())
-    //{
-    //    char* text = new char[len];
-    //    fin.read(text, len);
-     //   outsize += len;
-    //    queue2.push_back(std::async(std::launch::async, Code, text, len));
-    //}
-    string str = Code((char*)text.c_str(),text.size());
-    std::ofstream fout(nameOutFile, std::ios_base::out | std::ios_base::binary);
-    for (int i = 0; i < 128; i++)
+    status.push_front(std::async(std::launch::async, ThreadWriter, &queue2, nameOutFile, &stop, arrayOfChar));
+    fin.open(nameInFile, ios::in || ios::binary);
+    char* txt = nullptr;
+    while (!fin.fail())
     {
-        fout << arrayOfChar[i].count << " " << endl;
+        char* text = new char[len];
+        fin.read(text, len);
+        outsize += len;
+        queue2.push_back(std::async(std::launch::async, Code, text, len));
+        txt = text;
     }
-    std::bitset<8> code;
-    int j = 0;
-		for (int i = 0; i < str.size(); i++)
-		{
-				code[7 - j] = str[i] == '0' ? 0 : 1;
-				if (j == 7)
-				{
-						fout << static_cast<char>(code.to_ulong());
-						code.reset();
-						j = 0;
-				}
-				else j++;
-		}
-		fout << static_cast<char>(code.to_ulong());
-        fout << j;
-    fout.close();
+    cout << txt << endl;
     stop = true;
-    //status.front().get();
-    //status.clear();
+    status.front().get();
+    status.clear();
     //queue2.clear();
     fin.close();
     
@@ -302,6 +288,6 @@ void Decompress(std::string nameInFile, std::string nameOutFile)
 }
 int main()
 {
-    Compress("n.txt", "engwiki.compressed");
-    Decompress("engwiki.compressed", "out.txt");
+    Compress("engwiki_ascii.txt", "engwiki.compressed");
+    //Decompress("engwiki.compressed", "out.txt");
 }
