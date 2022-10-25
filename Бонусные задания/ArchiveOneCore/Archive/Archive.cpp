@@ -10,6 +10,7 @@
 #include <iterator>
 #include <string.h>
 #include <bitset>
+#include <chrono>
 
 struct Node
 {
@@ -33,6 +34,8 @@ struct Node
 
 std::unordered_map<char, std::string> mapC;
 std::unordered_map<std::string, char> mapD;
+double startsize = 0;
+double endsize = 0;
 
 
 
@@ -161,7 +164,6 @@ void Compress(std::string nameInFile, std::string nameOutFile)
 {
     using namespace std;
     const size_t len = 50000;
-    float filesize = 0;
     ifstream fin(nameInFile, ios::in);
     //Для получения нового массива чаров
     list<future<std::vector<Node>>> queue1;
@@ -171,7 +173,6 @@ void Compress(std::string nameInFile, std::string nameOutFile)
         char* text = new char[len];
         fin.read(text, len);
         queue1.push_front(std::async(std::launch::async, GetArrayOfChar, text, len));
-        filesize += len;
     }
     fin.close();
     if (queue1.empty()) return;
@@ -188,47 +189,38 @@ void Compress(std::string nameInFile, std::string nameOutFile)
     delTree(&tree);
     string text;
     fin.open(nameInFile, ios::in);
-		text.append((istreambuf_iterator<char>(fin)), istreambuf_iterator<char>());
-
-    float outsize = 0;
-    bool stop = false;
-    //list<future<void>> status;
-    //list<future<string>> queue2;
-    //status.push_front(std::async(std::launch::async, StatusBar, &filesize, &outsize));
-    //status.push_front(std::async(std::launch::async, ThreadWriter, &queue2, nameOutFile, &stop));
-    //while (!fin.fail())
-    //{
-    //    char* text = new char[len];
-    //    fin.read(text, len);
-     //   outsize += len;
-    //    queue2.push_back(std::async(std::launch::async, Code, text, len));
-    //}
+	text.append((istreambuf_iterator<char>(fin)), istreambuf_iterator<char>());
+    startsize = text.size();
     string str = Code((char*)text.c_str(),text.size());
+    float filesize = str.size();
+    float outsize = 0;
+    auto bar = std::async(std::launch::async, StatusBar, &filesize, &outsize);
     std::ofstream fout(nameOutFile, std::ios_base::out | std::ios_base::binary);
     for (int i = 0; i < 128; i++)
     {
         fout << arrayOfChar[i].count << " " << endl;
     }
+    endsize = 0;
     std::bitset<8> code;
     int j = 0;
-		for (int i = 0; i < str.size(); i++)
+	for (int i = 0; i < str.size(); i++)
+	{
+        outsize = i+1;
+		code[7 - j] = str[i] == '0' ? 0 : 1;
+		if (j == 7)
 		{
-				code[7 - j] = str[i] == '0' ? 0 : 1;
-				if (j == 7)
-				{
-						fout << static_cast<char>(code.to_ulong());
-						code.reset();
-						j = 0;
-				}
-				else j++;
+				fout << static_cast<char>(code.to_ulong());
+                endsize++;
+				code.reset();
+				j = 0;
 		}
-		fout << static_cast<char>(code.to_ulong());
-        fout << j;
+		else j++;
+	}
+    endsize++;
+	fout << static_cast<char>(code.to_ulong());
+    fout << j;
     fout.close();
-    stop = true;
-    //status.front().get();
-    //status.clear();
-    //queue2.clear();
+    bar.get();
     fin.close();
     
 }
@@ -236,23 +228,16 @@ void Decompress(std::string nameInFile, std::string nameOutFile)
 {
     using namespace std;
     string text;
-    const size_t len = 50000;
-    float filesize = 0;
-    float outsize = 0;
     ifstream fin(nameInFile, ios::in | ios::binary);
     text.append((istreambuf_iterator<char>(fin)), istreambuf_iterator<char>());
-    /*while (!fin.fail())
-    {
-        char text[len];
-        fin.read(text, len);
-        filesize += len;
-    }*/
     vector<Node> arrayOfChar;
     int start = 0;
     for (int i = 0; i < 128; i++)
     {
         string s = "";
-        while (text[start] != ' ') s += text[start++];
+        while (text[start] != ' ') {
+            s += text[start++];
+        }
         start += 2;
         arrayOfChar.push_back(Node(i, atoi(s.c_str())));
     }
@@ -260,49 +245,124 @@ void Decompress(std::string nameInFile, std::string nameOutFile)
     mapD = TreeToMapD(&tree);
     delTree(&tree);
     ofstream fout(nameOutFile, std::ios_base::out);
+    float filesize = text.size() - 2;
+    float outsize = 0;
+    auto bar = std::async(std::launch::async, StatusBar, &filesize, &outsize);
     string buf = "";
-    //list<future<void>> queue3;
-    //queue3.push_front(std::async(std::launch::async, StatusBar, &filesize, &outsize));
-    //while (!fin.fail())
-    //{
-        std::bitset<8> byte;
-        //char text[len];
-        //fin.read(text, len);
-        int sizeLastByte = text[text.size() - 1] - '0';
-        for (int i = start; i < text.size() - 1; i++)
+    std::bitset<8> byte;
+    int sizeLastByte = text[text.size() - 1] - '0';
+    for (int i = start; i < text.size() - 1; i++)
+    {
+        byte = text[i];
+        outsize = i+1;
+        if (i == text.size() - 2)
         {
-            byte = text[i];
-            if (i == text.size() - 2)
+            for (int bite = 0; bite < sizeLastByte; bite++)
             {
-                for (int bite = 0; bite < sizeLastByte; bite++)
-                {
-                    buf += byte[7 - bite] == 0 ? '0' : '1';
-                    if (mapD.count(buf))
-                    {
-                        //cout << endl << buf << "-" << map[buf] << endl;
-                        fout << mapD[buf];
-                        buf = "";
-                    }
-                }
-                break;
-            }
-            for (int bite = 0; bite < 8; bite++)
-            {
-                buf += byte[7 - bite] == 0 ? '0': '1';
+                buf += byte[7 - bite] == 0 ? '0' : '1';
                 if (mapD.count(buf))
                 {
-                    //cout << endl << buf << "-" << map[buf] << endl;
                     fout << mapD[buf];
                     buf = "";
                 }
             }
+            break;
         }
-        //outsize += len;
-    //}
-    //queue3.clear();
+        for (int bite = 0; bite < 8; bite++)
+        {
+            buf += byte[7 - bite] == 0 ? '0': '1';
+            if (mapD.count(buf))
+            {
+                fout << mapD[buf];
+                buf = "";
+            }
+        }
+    }
+    bar.get();
 }
-int main()
+int main(int argc, char* agrv[])
 {
-    Compress("n.txt", "engwiki.compressed");
-    Decompress("engwiki.compressed", "out.txt");
+    using namespace std;
+    if (argc == 1)
+    {
+        cout << "You can add '-h' to file name to get help";
+        return 0;
+    }
+    string type = agrv[1];
+    if (type == "-h")
+    {
+        cout << "This is Elias gamma coding compressor for ASCII text files." << endl;
+        cout << "General options:" << endl;
+        cout << "-c [ --compress ]\tCompress file (-c init.txt output.compressed)" << endl;
+        cout << "-d [ --decompress ]\tDecompress file (-d output.compressed check.txt)" << endl;
+        cout << "-h [ --help ]\tShow help" << endl;
+        return 0;
+    }
+    if (type == "-c")
+    {
+        if (argc != 4)
+        {
+            cout << "Fail! Input and output files must be specified!" << endl;
+            return 0;
+        }
+        string inputname = agrv[2];
+        string outputname = agrv[3];
+        cout << inputname << endl;
+        ifstream fin(inputname, ios::in);
+        if (!fin.is_open())
+        {
+            cout << "Fail! The input file with this name is not found!" << endl;
+            return 0;
+        }
+        fin.close();
+        try 
+        {
+            auto time_one = chrono::steady_clock::now();
+            Compress(inputname, outputname);
+            auto time_two = chrono::steady_clock::now();
+            cout << "Done!" << endl;
+            cout << "Compression ratio: " << startsize << " bytes / " << endsize << " bytes = " << startsize/endsize << endl;
+            cout << "Compression time: " << chrono::duration_cast<chrono::microseconds>(time_two - time_one).count() / 1e6 << " sec." << endl;
+            return 0;
+        }
+        catch (...)
+        {
+            cout << "Fail! The input file is corrupted!" << endl;
+            return 0;
+        }
+    }
+    if (type == "-d")
+    {
+        if (argc != 4)
+        {
+            cout << "Fail! Input and output files must be specified!" << endl;
+            return 0;
+        }
+        string inputname = agrv[2];
+        string outputname = agrv[3];
+        ifstream fin(inputname, ios::in);
+        if (!fin.is_open())
+        {
+            cout << "Fail! The input file with this name is not found!" << endl;
+            return 0;
+        }
+        fin.close();
+        try
+        {
+            auto time_one = chrono::steady_clock::now();
+            Decompress(inputname, outputname);
+            auto time_two = chrono::steady_clock::now();
+            cout << "Done!" << endl;
+            cout << "Dempression time: " << chrono::duration_cast<chrono::microseconds>(time_two - time_one).count() / 1e6 << " sec." << endl;
+            return 0;
+        }
+        catch (...)
+        {
+            cout << "Fail! The input file is corrupted!" << endl;
+            return 0;
+        }
+    }
+    return 0;
+    //Compress("n.txt", "engwiki.compressed");
+    //Decompress("engwiki.compressed", "out.txt");
 }
