@@ -325,7 +325,7 @@ int main(int argc, char* agrv[])
             cout << "Compression time: " << chrono::duration_cast<chrono::microseconds>(time_two - time_one).count() / 1e6 << " sec." << endl;
             return 0;
         }
-        catch (...)
+        catch (const std::exception& e)
         {
             cout << "Fail! The input file is corrupted!" << endl;
             return 0;
@@ -356,7 +356,7 @@ int main(int argc, char* agrv[])
             cout << "Dempression time: " << chrono::duration_cast<chrono::microseconds>(time_two - time_one).count() / 1e6 << " sec." << endl;
             return 0;
         }
-        catch (...)
+        catch (const std::exception& e)
         {
             cout << "Fail! The input file is corrupted!" << endl;
             return 0;
