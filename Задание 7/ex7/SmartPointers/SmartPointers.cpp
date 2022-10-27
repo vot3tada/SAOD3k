@@ -14,7 +14,7 @@ int main()
 		cout << (sp.get() + i)->Val << endl;
 	}*/
 	unique_ptr<Test[]> p = make_unique<Test[]>(3);
-	for (int i = 1; i <= 3; i++)
+	for (int i = 0; i < 3; i++)
 	{
 		p[i].Val = i;
 		cout << p[i].Val << endl;

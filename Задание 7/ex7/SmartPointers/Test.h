@@ -5,10 +5,9 @@ using namespace std;
 class Test
 {
 public:
-	int Val;
+	int Val = 0;
 	Test()
 	{
-		Val = 0;
 		cout << "Test Start" << endl;
 	}
 	~Test()
