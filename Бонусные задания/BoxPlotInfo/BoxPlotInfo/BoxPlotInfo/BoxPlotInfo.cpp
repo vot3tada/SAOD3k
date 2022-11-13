@@ -3,8 +3,9 @@
 #include <numeric>
 #include <algorithm>
 #include <math.h>
+#include <tuple>
 
-void boxInfo(const std::vector<double>& array, int e)
+std::tuple<double, double, double, double, double, double, double, std::vector<double>> boxInfo(const std::vector<double>& array, int e)
 {
     std::vector<double> arrayCopy(array);
     double k = 1.5,
@@ -54,16 +55,8 @@ void boxInfo(const std::vector<double>& array, int e)
         }
         out.push_back(arrayCopy[i]);
     }
-    std::cout << "min:\t" << min << std::endl;
-    std::cout << "lq:\t" << Q1 << std::endl;
-    std::cout << "median:\t" << median << std::endl;
-    std::cout << "mean:\t" << mean << std::endl;
-    std::cout << "stddev:\t" << stddev << std::endl;
-    std::cout << "uq:\t" << Q3 << std::endl;
-    std::cout << "max:\t" << max << std::endl;
-    std::cout << "out:\t";
-    for (int i = 0; i < out.size(); std::cout << out[i++] << " ");
-    std::cout << std::endl;
+    std::tuple<double, double, double, double, double, double, double, std::vector<double>> tuple(min,Q1,median,mean,stddev,Q3,max,out);
+    return tuple;
 }
 
 
@@ -82,5 +75,16 @@ int main()
         6.7197,
         6.736 };
     //for (auto i : x) std::cout << i << "\t";
-    boxInfo(x, 2);
+    auto a = boxInfo(x, 2);
+    std::cout << "min:\t" << std::get<0>(a) << std::endl;
+    std::cout << "lq:\t" << std::get<1>(a) << std::endl;
+    std::cout << "median:\t" << std::get<2>(a) << std::endl;
+    std::cout << "mean:\t" << std::get<3>(a) << std::endl;
+    std::cout << "stddev:\t" << std::get<4>(a) << std::endl;
+    std::cout << "uq:\t" << std::get<5>(a) << std::endl;
+    std::cout << "max:\t" << std::get<6>(a) << std::endl;
+    std::cout << "out:\t";
+    auto out = std::get<7>(a);
+    for (int i = 0; i < out.size(); std::cout << out[i++] << " ");
+    std::cout << std::endl;
 }
