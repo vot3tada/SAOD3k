@@ -3,6 +3,7 @@
 #include <chrono>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 
 size_t naive(const std::string& str, const std::string& sub)
 {
@@ -37,7 +38,7 @@ size_t kmp(const std::string& str, const std::string& sub)
     }
     for (int i = 0; i < str.size(); i++)
     {
-        if (str.size() - i < sub.size()) return -1;
+        if (str.size() - i < sub.size()) return std::string::npos;
         bool flag = false;
         for (int j = 0; j < sub.size(); j++)
         {
@@ -50,12 +51,32 @@ size_t kmp(const std::string& str, const std::string& sub)
         }
         if (!flag) return i;
     }
-    return -1;
+    return std::string::npos;
 }
 
 size_t bm(const std::string& str, const std::string& sub)
 {
     // ваша быстрая реализация BM
+    std::vector<int> pi;
+    for (int i = 0; i < sub.size() - 1; i++) pi.push_back(sub.size() - i - 2);
+    pi.push_back(sub.size() - 1);
+    for (int i = 0; i < str.size(); i++)
+    {
+        if (str.size() - i < sub.size()) return std::string::npos;
+        bool flag = false;
+        for (int j = sub.size() - 1; j >= 0; j--)
+        {
+            if (str[i + j] != sub[j])
+            {
+                flag = true;
+                auto f = find(sub.rbegin(), sub.rend(), str[i + j]);
+                if (f != sub.rend()) i += pi[sub.rend() - f - 1];
+                else i += pi.back();
+                break;
+            }
+        }
+        if (!flag) return i;
+    }
     return std::string::npos;
 }
 
@@ -98,6 +119,40 @@ int main()
     {
         auto time_one = chrono::high_resolution_clock::now();
         auto index = naive(str, sub);
+        if (index == std::string::npos)
+            std::cout << "not found\n";
+        else
+            indx[i] = index;
+        auto time_two = chrono::high_resolution_clock::now();
+        times[i] = chrono::duration_cast<chrono::nanoseconds>(time_two - time_one).count();
+    }
+    for (size_t i = 0; i < n; i++)
+    {
+        cout << indx[i] << '\t' << times[i] << endl;
+    }
+
+    cout << "\nkmp\n";
+    for (size_t i = 0; i < n; i++)
+    {
+        auto time_one = chrono::high_resolution_clock::now();
+        auto index = kmp(str, sub);
+        if (index == std::string::npos)
+            std::cout << "not found\n";
+        else
+            indx[i] = index;
+        auto time_two = chrono::high_resolution_clock::now();
+        times[i] = chrono::duration_cast<chrono::nanoseconds>(time_two - time_one).count();
+    }
+    for (size_t i = 0; i < n; i++)
+    {
+        cout << indx[i] << '\t' << times[i] << endl;
+    }
+
+    cout << "\nbm\n";
+    for (size_t i = 0; i < n; i++)
+    {
+        auto time_one = chrono::high_resolution_clock::now();
+        auto index = bm(str, sub);
         if (index == std::string::npos)
             std::cout << "not found\n";
         else
