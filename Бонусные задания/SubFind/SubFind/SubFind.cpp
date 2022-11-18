@@ -23,7 +23,7 @@ size_t naive(const std::string& str, const std::string& sub)
 
 size_t kmp(const std::string& str, const std::string& sub)
 {
-    std::vector<int> pi;
+    std::vector<int> pi(sub.size());
     for (int i = 1; i < sub.size() + 1; i++)
     {
         auto z = sub.substr(0, i);
@@ -34,7 +34,7 @@ size_t kmp(const std::string& str, const std::string& sub)
             auto s = z.substr(z.size() - j, j);
             if (p == s) k = p.size();
         }
-        pi.push_back(k);
+        pi[i - 1] = k;
     }
     for (int i = 0; i < str.size(); i++)
     {
@@ -57,9 +57,9 @@ size_t kmp(const std::string& str, const std::string& sub)
 size_t bm(const std::string& str, const std::string& sub)
 {
     // ваша быстрая реализация BM
-    std::vector<int> pi;
-    for (int i = 0; i < sub.size() - 1; i++) pi.push_back(sub.size() - i - 2);
-    pi.push_back(sub.size() - 1);
+    std::vector<int> pi(sub.size());
+    for (int i = 0; i < sub.size() - 1; i++) pi[i] = sub.size() - i - 2;
+    pi.back() = sub.size() - 1;
     for (int i = 0; i < str.size(); i++)
     {
         if (str.size() - i < sub.size()) return std::string::npos;
