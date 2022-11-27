@@ -24,65 +24,95 @@ size_t naive(const std::string& str, const std::string& sub)
 size_t kmp(const std::string& str, const std::string& sub)
 {
     std::vector<int> pi(sub.size());
-    for (int i = 1; i < sub.size() + 1; i++)
-    {
-        auto z = sub.substr(0, i);
-        int k = 0;
-        for (int j = 1; j < z.size(); j++)
-        {
-            auto p = z.substr(0, j);
-            auto s = z.substr(z.size() - j, j);
-            if (p == s) k = p.size();
-        }
-        pi[i - 1] = k;
+    for (int i = 1; i < sub.size(); i++) {
+        int j = pi[i - 1];
+        while (j > 0 && sub[i] != sub[j])
+            j = pi[j - 1];
+        if (sub[i] == sub[j])
+            j++;
+        pi[i] = j;
     }
-    for (int i = 0; i < str.size(); i++)
+    for (int k = 0, i = 0; i < str.size(); ++i)
     {
-        if (str.size() - i < sub.size()) return std::string::npos;
-        bool flag = false;
-        for (int j = 0; j < sub.size(); j++)
-        {
-            if (str[i+j] != sub[j])
-            {
-                flag = true;
-                if (j > 1) i += pi[j - 1];
-                break;
-            }
-        }
-        if (!flag) return i;
+        while (k > 0 && sub[k] != str[i]) k = pi[k - 1];
+        if (sub[k] == str[i]) k++;
+        if (k == sub.size()) return i - sub.size() + 1;
     }
     return std::string::npos;
+}
+using namespace std;
+vector<size_t> prefix(const string& s)
+{
+
+    size_t n = s.length();
+    vector<size_t> len(n);
+
+    for (size_t i = 1; i < n; i++)
+    {
+
+        size_t j = len[i - 1];
+
+        while (j > 0 && s[i] != s[j])
+            j = len[j - 1];
+
+        if (s[i] == s[j])
+            j++;
+
+        len[i] = j;
+    }
+    return len;
+}
+
+size_t KMP2(const string& T, const string& t)
+{
+    size_t index = string::npos;
+    size_t Tn = T.length();
+    size_t tn = t.length();
+    vector<size_t> f = prefix(t);
+    size_t j = 0;
+    for (size_t i = 0; i < Tn; i++)
+    {
+        while (j > 0 && T[i] != t[j])
+            j = f[j - 1];
+        if (T[i] == t[j])
+            ++j;
+        if (j == tn)
+        {
+            index = i - tn + 1;
+            break;
+        }
+    }
+    return index;
 }
 
 size_t bm(const std::string& str, const std::string& sub)
 {
-    // ваша быстрая реализация BM
-    std::vector<int> pi(sub.size());
-    for (int i = 0; i < sub.size() - 1; i++) pi[i] = sub.size() - i - 2;
-    pi.back() = sub.size() - 1;
-    for (int i = 0; i < str.size(); i++)
+    int badchar[256];
+
+    for (int i = 0; i < 256; i++)
+        badchar[i] = -1;
+    for (int i = 0; i < sub.size(); i++)
+        badchar[(int)sub[i]] = i;
+    int s = 0;
+    while (s <= (str.size() - sub.size()))
     {
-        if (str.size() - i < sub.size()) return std::string::npos;
-        bool flag = false;
-        for (int j = sub.size() - 1; j >= 0; j--)
+        int j = sub.size() - 1;
+        while (j >= 0 && sub[j] == str[s + j])
+            j--;
+        if (j < 0)
         {
-            if (str[i + j] != sub[j])
-            {
-                flag = true;
-                auto f = find(sub.rbegin(), sub.rend(), str[i + j]);
-                if (f != sub.rend()) i += pi[sub.rend() - f - 1];
-                else i += pi.back();
-                break;
-            }
+            return s;
+            //s += (s + sub.size() < str.size()) ? sub.size() - badchar[str[s + sub.size()]] : 1;
         }
-        if (!flag) return i;
+        else
+            s += max(1, j - badchar[str[s + j]]);
     }
-    return std::string::npos;
+    return s;
 }
 
 int main()
 {
-    using namespace std;
+   using namespace std;
 
     string str, sub = "was born in a small town called Sceptre";
     ifstream fin("engwiki_ascii.txt", ios::binary);
@@ -107,7 +137,7 @@ int main()
         else
             indx[i] = index;
         auto time_two = chrono::high_resolution_clock::now();
-        times[i] = chrono::duration_cast<chrono::nanoseconds>(time_two - time_one).count();
+        times[i] = chrono::duration_cast<chrono::milliseconds>(time_two - time_one).count();
     }
     for (size_t i = 0; i < n; i++)
     {
@@ -124,7 +154,7 @@ int main()
         else
             indx[i] = index;
         auto time_two = chrono::high_resolution_clock::now();
-        times[i] = chrono::duration_cast<chrono::nanoseconds>(time_two - time_one).count();
+        times[i] = chrono::duration_cast<chrono::milliseconds>(time_two - time_one).count();
     }
     for (size_t i = 0; i < n; i++)
     {
@@ -141,7 +171,24 @@ int main()
         else
             indx[i] = index;
         auto time_two = chrono::high_resolution_clock::now();
-        times[i] = chrono::duration_cast<chrono::nanoseconds>(time_two - time_one).count();
+        times[i] = chrono::duration_cast<chrono::milliseconds>(time_two - time_one).count();
+    }
+    for (size_t i = 0; i < n; i++)
+    {
+        cout << indx[i] << '\t' << times[i] << endl;
+    }
+
+    cout << "\nkmp2\n";
+    for (size_t i = 0; i < n; i++)
+    {
+        auto time_one = chrono::high_resolution_clock::now();
+        auto index = KMP2(str, sub);
+        if (index == std::string::npos)
+            std::cout << "not found\n";
+        else
+            indx[i] = index;
+        auto time_two = chrono::high_resolution_clock::now();
+        times[i] = chrono::duration_cast<chrono::milliseconds>(time_two - time_one).count();
     }
     for (size_t i = 0; i < n; i++)
     {
@@ -158,7 +205,7 @@ int main()
         else
             indx[i] = index;
         auto time_two = chrono::high_resolution_clock::now();
-        times[i] = chrono::duration_cast<chrono::nanoseconds>(time_two - time_one).count();
+        times[i] = chrono::duration_cast<chrono::milliseconds>(time_two - time_one).count();
     }
     for (size_t i = 0; i < n; i++)
     {
